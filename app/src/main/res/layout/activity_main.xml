@@ -24,6 +24,7 @@
         android:layout_width="341dp"
         android:layout_height="200dp"
         android:layout_marginTop="32dp"
+        android:contentDescription="@string/meter_image"
         android:src="@drawable/meter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -81,6 +82,8 @@
             android:id="@+id/btn_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="46dp"
             android:layout_marginEnd="16dp"
             android:text="@string/ok" />
 
@@ -88,11 +91,12 @@
             android:id="@+id/btn_camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="53dp"
             android:layout_marginEnd="16dp"
             android:layout_toEndOf="@id/btn_ok"
             android:text="@string/cemera" />
 
-<!--        <Button-->
+        <!--        <Button-->
 <!--            android:id="@+id/btn_recp"-->
 <!--            android:layout_width="wrap_content"-->
 <!--            android:layout_height="wrap_content"-->

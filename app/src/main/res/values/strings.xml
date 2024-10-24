@@ -10,4 +10,5 @@
     <string name="cemera">Camera</string>
     <string name="meter_detected">Meter detected</string>
     <string name="no_meter_found">No Meter Found</string>
+    <string name="meter_image">Meter Image</string>
 </resources>
