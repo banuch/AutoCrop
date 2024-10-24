@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">AutoCrop</string>
+    <string name="camera">camera</string>
+    <string name="kwh_value">Extracted Value</string>
+    <string name="extract_value">Extract</string>
+    <string name="ok">OK</string>
+    <string name="recap">Capture</string>
+    <string name="textview">TextView</string>
+    <string name="load_image_first">Capture Image First</string>
+    <string name="cemera">Camera</string>
+    <string name="meter_detected">Meter detected</string>
+    <string name="no_meter_found">No Meter Found</string>
+</resources>
