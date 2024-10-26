@@ -78,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     private Uri image_uri;
     Bitmap bitmap;
 
+    int image_count = 0;
+
     Toolbar myToolbar;
     ObjectDetectorHelper objectDetectorHelper;
     EditText txtResult;
@@ -136,6 +138,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         SeekBar seekBar = findViewById(R.id.seekBar);
         btnOK.setEnabled(true);
 
+        seekBar.setVisibility(View.INVISIBLE);
+
 //        txtResult.setText("450");
 
 
@@ -152,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         txtResult.setOnClickListener(v -> {
             // Perform actions when EditText is clicked
             // For example, you can show a dialog or perform some other action
-            enableEditing();
+            // enableEditing();
         });
 
         txtResult.setOnKeyListener((v, keyCode, event) -> {
@@ -233,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                         doInference();
                         btnOK.setEnabled(true);
                     } else {
-                        txtStatus.setText("No Meter Detected On Image");
+                        txtStatus.setText(R.string.no_meter_detected_on_image);
                     }
                 } else {
                     txtStatus.setText(R.string.load_image_first);
@@ -255,6 +259,12 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
+
+                        image_count = image_count + 1;
+                        if (image_count >= 3) {
+                            enableEditing();
+
+                        }
                         Intent data = result.getData();
 
                         if (data != null) {
@@ -267,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
                         txtResult.setText("");
                         objectDetectorHelper.setCurrentModel("meter_detect.tflite");
-                        objectDetectorHelper.setThreshold(0.89f);
+                        objectDetectorHelper.setThreshold(0.70f);
                         objectDetectorHelper.setupObjectDetector();
 
                         doInference();
@@ -276,7 +286,17 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                             meter_detect = true;
                             txtResult.setText("");
                             objectDetectorHelper.setCurrentModel("mds.tflite");
-                            objectDetectorHelper.setThreshold(0.4f);
+
+                            if (image_count == 1) {
+                                objectDetectorHelper.setThreshold(0.4f);
+                            } else if (image_count == 2) {
+                                objectDetectorHelper.setThreshold(0.35f);
+                            } else if (image_count == 3) {
+                                objectDetectorHelper.setThreshold(0.30f);
+                            } else {
+                                objectDetectorHelper.setThreshold(0.4f);
+                            }
+
                             objectDetectorHelper.setupObjectDetector();
                             txtStatus.setText(R.string.meter_detected);
                             doInference();
@@ -318,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                 txtResult.requestFocus(); // Optional, sets focus to the EditText
                 editFlag = true;
                 eFlag = true;
-                Toast.makeText(MainActivity.this, "Edited Enabled Click on Textbook once", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Edited Enabled", Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
 

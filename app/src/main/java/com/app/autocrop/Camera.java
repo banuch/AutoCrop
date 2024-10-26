@@ -6,11 +6,13 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
@@ -133,6 +135,19 @@ public class Camera extends AppCompatActivity {
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
+
+        ImageAnalysis imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(1280, 720))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), image -> {
+            if (image != null) {
+//                processImage(image);
+                image.close();
+            }
+        });
 
         imageCapture = new ImageCapture.Builder().build();
 
