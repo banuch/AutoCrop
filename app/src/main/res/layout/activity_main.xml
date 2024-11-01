@@ -9,19 +9,31 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- Toolbar -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/my_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:gravity="center"
-        android:title="@string/offline_ocr"
-        android:titleTextColor="@android:color/white" />
+<!--    &lt;!&ndash; Toolbar &ndash;&gt;-->
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:id="@+id/my_toolbar"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="45dp"-->
+<!--        android:background="?attr/colorPrimary"-->
+<!--        android:gravity="center|center_horizontal"-->
+<!--        android:title="@string/offline_ocr"-->
+<!--        android:titleTextColor="@android:color/white" />-->
 
     <!-- ImageView for Image Capture -->
 
     <!-- EditText for Text Result -->
+
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/purple_200"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/offline_ocr"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <ImageView
         android:id="@+id/imgCapture"
@@ -33,7 +45,6 @@
 
         android:src="@drawable/meter"
         tools:srcCompat="@drawable/meter" />
-
     <EditText
         android:id="@+id/textResult"
         android:layout_width="match_parent"

@@ -3,7 +3,6 @@ package com.app.autocrop;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,7 +16,6 @@ import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -54,9 +52,7 @@ import com.google.mediapipe.tasks.vision.core.RunningMode;
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectionResult;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
 
     ImageView image;
-    TextView txtStatus;
+    TextView txtStatus,txtTitle;
     private Uri image_uri;
     Bitmap bitmap;
 
@@ -134,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
         image = findViewById(R.id.imgCapture);
         txtResult = findViewById(R.id.textResult);
+        txtTitle=findViewById(R.id.txtTitle);
         txtResult.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
         btnOK = findViewById(R.id.btn_ok);
@@ -141,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         btnCamera = findViewById(R.id.btn_camera);
         txtStatus = findViewById(R.id.txtStatus);
 
-        myToolbar = findViewById(R.id.my_toolbar);
-        myToolbar.setTitle("Offline OCR");
+//        myToolbar = findViewById(R.id.my_toolbar);
+//        myToolbar.setTitle("Offline OCR");
 
         SeekBar seekBar = findViewById(R.id.seekBar);
         btnOK.setEnabled(true);
@@ -176,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         txtResult.setText("");
 
         txtResult.setOnClickListener(v -> {
-            if (image_count >= 3) {
+            if (image_count >= 3 && meter_detect) {
                 //showNumericDialog();
                 showNumericBottomDialog();
 
@@ -431,7 +428,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     private void openCamera() {
 
         meter_detect = false;
-        myToolbar.setTitle("Offline OCR");
+        txtTitle.setText("Offline OCR");
         txtResult.setText("");
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult.launch(cameraIntent);
@@ -524,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         bottomSheetDialog.show();
 
         // Set up display TextView to show entered numbers
-        TextView displayText = dialogView.findViewById(R.id.display_text);
+        TextView displayText = dialogView.findViewById(R.id.txtTitle);
 
         // Numeric buttons logic
         View.OnClickListener numberButtonListener = view -> {
@@ -583,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         Log.d(TAG,"Gravity Set Bottom");
 
         // Set up display TextView to show entered numbers
-        TextView displayText = dialogView.findViewById(R.id.display_text);
+        TextView displayText = dialogView.findViewById(R.id.txtTitle);
 
         // Numeric buttons logic
         View.OnClickListener numberButtonListener = view -> {
@@ -782,8 +779,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                             objectName = category.categoryName();
 
                             if (category.categoryName().contentEquals("reading")) {
-                                String displayScrore = "Offline OCR (" + category.score() + " %)";
-                                myToolbar.setTitle(displayScrore);
+                                String displayScore = "Offline OCR (" + category.score() + " %)";
+                                txtTitle.setText(displayScore);
                             }
                         }
                     }
