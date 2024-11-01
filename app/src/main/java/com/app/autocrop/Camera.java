@@ -143,10 +143,8 @@ public class Camera extends AppCompatActivity {
                         .build();
 
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), image -> {
-            if (image != null) {
-//                processImage(image);
-                image.close();
-            }
+            //                processImage(image);
+            image.close();
         });
 
         imageCapture = new ImageCapture.Builder().build();

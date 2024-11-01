@@ -2,6 +2,7 @@ package com.app.autocrop;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -18,13 +19,18 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +47,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.mediapipe.tasks.components.containers.Category;
 import com.google.mediapipe.tasks.components.containers.Detection;
 import com.google.mediapipe.tasks.vision.core.RunningMode;
@@ -83,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     Toolbar myToolbar;
     ObjectDetectorHelper objectDetectorHelper;
     EditText txtResult;
+
+    private StringBuilder inputNumber = new StringBuilder();
     Button btnCamera, btnOK, btnRecap;
     // Declare the ActivityResultLauncher
     private ActivityResultLauncher<Intent> startActivityForResult;
@@ -138,9 +147,22 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         SeekBar seekBar = findViewById(R.id.seekBar);
         btnOK.setEnabled(true);
 
-        seekBar.setVisibility(View.INVISIBLE);
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        int width = displayMetrics.widthPixels;
+        int height = displayMetrics.heightPixels;
 
-//        txtResult.setText("450");
+
+        int newWidth = (int) (width * 0.60);
+        int newHeight = (int) (height * 0.36);
+
+
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(newWidth, newHeight);
+        image.setLayoutParams(layoutParams);
+
+        image.requestLayout();
+
+
+        // seekBar.setVisibility(View.INVISIBLE);
 
 
         seekBar.setProgress(20);
@@ -154,9 +176,11 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         txtResult.setText("");
 
         txtResult.setOnClickListener(v -> {
-            // Perform actions when EditText is clicked
-            // For example, you can show a dialog or perform some other action
-            // enableEditing();
+            if (image_count >= 3) {
+                //showNumericDialog();
+                showNumericBottomDialog();
+
+            }
         });
 
         txtResult.setOnKeyListener((v, keyCode, event) -> {
@@ -198,6 +222,18 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         btnOK.setOnClickListener(v -> SendValues());
 //        btnRecap.setOnClickListener(v -> callMainScreen());
         btnCamera.setOnClickListener(v -> openCamera());
+
+
+        // Show the keyboard when the EditText is focused
+        txtResult.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    Log.d(TAG, "Focus Event fired");
+                    ShowKeyboard(txtResult);
+                }
+            }
+        });
 
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -260,11 +296,6 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
 
-                        image_count = image_count + 1;
-                        if (image_count >= 3) {
-                            enableEditing();
-
-                        }
                         Intent data = result.getData();
 
                         if (data != null) {
@@ -301,6 +332,16 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                             txtStatus.setText(R.string.meter_detected);
                             doInference();
 
+                            image_count = image_count + 1;
+                            String temp=txtStatus.getText().toString();
+                            temp=temp+"( Image count: "+image_count+" )";
+                            txtStatus.setText(temp);
+                            if (image_count >= 3) {
+                                //showNumericDialog();
+                                showNumericBottomDialog();
+
+                            }
+
                         } else {
                             txtStatus.setText(R.string.no_meter_found);
                             meter_detect = false;
@@ -326,26 +367,56 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         }
     }
 
+    public void ShowKeyboard(EditText editText) {
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+        }
+
+    }
+
     public void enableEditing() {
 
         if (!eFlag) {
             try {
                 Log.d(TAG, "Editing Enabled");
+
+                txtResult.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
                 txtResult.setFocusable(true);
                 txtResult.setFocusableInTouchMode(true);
                 txtResult.setCursorVisible(true);
                 txtResult.setClickable(true);
-                txtResult.requestFocus(); // Optional, sets focus to the EditText
+                txtResult.requestFocus();
+
                 editFlag = true;
-                eFlag = true;
-                Toast.makeText(MainActivity.this, "Edited Enabled", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this, "Editing Enabled", Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
-
-                System.out.println(e.toString());
-                Log.d(TAG, "Unable to Enable Editing");
+                Log.e(TAG, "Unable to Enable Editing", e);
             }
         }
+
+//
+//        if (!eFlag) {
+//            try {
+//                Log.d(TAG, "Editing Enabled");
+//                txtResult.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+//                txtResult.setFocusable(true);
+//                txtResult.setFocusableInTouchMode(true);
+//                txtResult.setCursorVisible(true);
+//                txtResult.setClickable(true);
+//                txtResult.requestFocus(); // Optional, sets focus to the EditText
+//                editFlag = true;
+//                eFlag = true;
+//                Toast.makeText(MainActivity.this, "Edited Enabled", Toast.LENGTH_SHORT).show();
+//
+//            } catch (Exception e) {
+//
+//                System.out.println(e.toString());
+//                Log.d(TAG, "Unable to Enable Editing");
+//            }
+//        }
 
 
     }
@@ -439,37 +510,113 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         String myString = String.valueOf(Angle);
         txtStatus.setText(myString);
 
-        // Save value
-//        SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString("rotate", "true");
-//        int Angle = sharedPreferences.getInt("angle", 0);
-////       if(Angle==0){
-////           Angle=90;
-////       }
-//
-//
-//        if (Angle < 360) {
-//            Angle = Angle + 90;
-//        }
-//        else{
-//            Angle=0;
-//        }
-//        //Angle=0;
-//
-//        editor.putInt("angle", Angle);
-//
-//        String myString = String.valueOf(Angle);
-//
-//
-//        editor.apply();
-//
-//        if (Angle > 0) {
-//            bitmap = rotateBitmap(bitmap, Angle);
-//        }
-//
-//        image.setImageBitmap(bitmap);
-//        txtStatus.setText(myString);
+
+    }
+
+    private void showNumericBottomDialog() {
+        // Inflate the custom layout
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_numeric_keyboard, null);
+
+        // Initialize BottomSheetDialog with the custom view
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(dialogView);
+        bottomSheetDialog.show();
+
+        // Set up display TextView to show entered numbers
+        TextView displayText = dialogView.findViewById(R.id.display_text);
+
+        // Numeric buttons logic
+        View.OnClickListener numberButtonListener = view -> {
+            Button button = (Button) view;
+            inputNumber.append(button.getText().toString());
+            displayText.setText(inputNumber.toString());
+        };
+
+        // Assign listener to each number button
+        dialogView.findViewById(R.id.button_0).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_1).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_2).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_3).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_4).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_5).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_6).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_7).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_8).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_9).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_decimal).setOnClickListener(numberButtonListener);
+
+        // Clear button logic
+        dialogView.findViewById(R.id.button_clear).setOnClickListener(v -> {
+            inputNumber.setLength(0);
+            displayText.setText("");
+        });
+
+        // Enter button logic
+        dialogView.findViewById(R.id.button_enter).setOnClickListener(v -> {
+            txtResult.setText(inputNumber.toString());
+            // Process the entered value
+            bottomSheetDialog.dismiss();
+        });
+
+    }
+    private void showNumericDialog() {
+        // Inflate custom layout for the dialog
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_numeric_keyboard, null);
+
+
+
+        // Initialize AlertDialog with custom view
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        WindowManager.LayoutParams lp = this.getWindow().getAttributes();
+        lp.gravity = Gravity.BOTTOM;
+
+        dialog.show();
+
+
+
+        Log.d(TAG,"Gravity Set Bottom");
+
+        // Set up display TextView to show entered numbers
+        TextView displayText = dialogView.findViewById(R.id.display_text);
+
+        // Numeric buttons logic
+        View.OnClickListener numberButtonListener = view -> {
+            Button button = (Button) view;
+            inputNumber.append(button.getText().toString());
+            displayText.setText(inputNumber.toString());
+        };
+
+        // Assign listener to each number button
+        dialogView.findViewById(R.id.button_0).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_1).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_2).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_3).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_4).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_5).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_6).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_7).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_8).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_9).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_decimal).setOnClickListener(numberButtonListener);
+
+        // Clear button logic
+        dialogView.findViewById(R.id.button_clear).setOnClickListener(v -> {
+            inputNumber.setLength(0);
+            displayText.setText("");
+        });
+
+        // Enter button logic
+        dialogView.findViewById(R.id.button_enter).setOnClickListener(v -> {
+            txtResult.setText(inputNumber.toString());
+            // Process the entered value
+            dialog.dismiss();
+        });
     }
 
     public void callMainScreen() {

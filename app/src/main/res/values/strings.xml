@@ -12,4 +12,6 @@
     <string name="no_meter_found">No Meter Found</string>
     <string name="meter_image">Meter Image</string>
     <string name="no_meter_detected_on_image">No Meter Detected On Image</string>
+    <string name="enter_value">Enter Value</string>
+    <string name="offline_ocr">Offline OCR</string>
 </resources>
