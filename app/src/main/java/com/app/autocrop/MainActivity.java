@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -133,6 +134,9 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         txtTitle=findViewById(R.id.txtTitle);
         txtResult.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
+        txtTitle.setText(getVersionName());
+
+
         btnOK = findViewById(R.id.btn_ok);
 //        btnRecap = findViewById(R.id.btn_recp);
         btnCamera = findViewById(R.id.btn_camera);
@@ -173,11 +177,13 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         txtResult.setText("");
 
         txtResult.setOnClickListener(v -> {
-            if (image_count >= 3 && meter_detect) {
-                //showNumericDialog();
-                showNumericBottomDialog();
-
-            }
+//            if (image_count >= 3 && meter_detect) {
+//                //showNumericDialog();
+//                showNumericBottomDialog();
+//
+//            }
+            editFlag=true;
+            showNumericBottomDialog();
         });
 
         txtResult.setOnKeyListener((v, keyCode, event) -> {
@@ -303,12 +309,14 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
                         image.setImageBitmap(bitmap);
 
-                        txtResult.setText("");
-                        objectDetectorHelper.setCurrentModel("meter_detect.tflite");
-                        objectDetectorHelper.setThreshold(0.70f);
-                        objectDetectorHelper.setupObjectDetector();
+//                        txtResult.setText("");
+//                        objectDetectorHelper.setCurrentModel("meter_detect.tflite");
+//                        objectDetectorHelper.setThreshold(0.70f);
+//                        objectDetectorHelper.setupObjectDetector();
+//
+//                        doInference();
 
-                        doInference();
+                        txtResult.setText("reading");
 
                         if (txtResult.getText().toString().contentEquals("reading")) {
                             meter_detect = true;
@@ -326,16 +334,16 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                             }
 
                             objectDetectorHelper.setupObjectDetector();
-                            txtStatus.setText(R.string.meter_detected);
+//                            txtStatus.setText(R.string.meter_detected);
                             doInference();
 
                             image_count = image_count + 1;
                             String temp=txtStatus.getText().toString();
                             temp=temp+"( Image count: "+image_count+" )";
-                            txtStatus.setText(temp);
+//                            txtStatus.setText(temp);
                             if (image_count >= 3) {
                                 //showNumericDialog();
-                                showNumericBottomDialog();
+                               // showNumericBottomDialog();
 
                             }
 
@@ -356,6 +364,20 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         image.setImageBitmap(bitmap);
 
     }
+
+
+
+        private String getVersionName() {
+            try {
+                PackageManager packageManager = getPackageManager();
+                PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+                return "Offline OCR ( Ver: "+ packageInfo.versionName +" )";
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                return "Version not found";
+            }
+        }
+
 
     private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -428,8 +450,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     private void openCamera() {
 
         meter_detect = false;
-        txtTitle.setText("Offline OCR");
-        txtResult.setText("");
+//        txtTitle.setText("Offline OCR");
+//        txtResult.setText("");
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult.launch(cameraIntent);
     }
@@ -668,10 +690,28 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
             case "KWH":
                 intent.putExtra("RESULT_VALUE", imagePath);
                 intent.putExtra("KWH", textValue);
+                if (editFlag) {
+                    Log.d(TAG, "OCR value : Edited");
+                    intent.putExtra("rFlag", "EDITED_KWH");
+
+                } else {
+                    Log.d(TAG, "OCR value : Extracted");
+
+                    intent.putExtra("rFlag", "EXTRACTED_KWH");
+                }
                 break;
             case "KVAH":
                 intent.putExtra("RESULT_VALUE", imagePath);
                 intent.putExtra("KVAH", textValue);
+                if (editFlag) {
+                    Log.d(TAG, "OCR value : Edited");
+                    intent.putExtra("rFlag", "EDITED_KVAH");
+
+                } else {
+                    Log.d(TAG, "OCR value : Extracted");
+
+                    intent.putExtra("rFlag", "EXTRACTED_KVAH");
+                }
                 break;
             case "RMD":
                 intent.putExtra("RESULT_VALUE", imagePath);
@@ -687,6 +727,15 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                     intent.putExtra("RMD", "unknown");
 
                 }
+                if (editFlag) {
+                    Log.d(TAG, "OCR value : Edited");
+                    intent.putExtra("rFlag", "EDITED_RMD");
+
+                } else {
+                    Log.d(TAG, "OCR value : Extracted");
+
+                    intent.putExtra("rFlag", "EXTRACTED_RMD");
+                }
 
                 break;
             case "LT":
@@ -696,15 +745,15 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         }
 
 
-        if (editFlag) {
-            Log.d(TAG, "OCR value : Edited");
-            intent.putExtra("rFlag", "EDITED");
-
-        } else {
-            Log.d(TAG, "OCR value : Extracted");
-
-            intent.putExtra("rFlag", "EXTRACTED");
-        }
+//        if (editFlag) {
+//            Log.d(TAG, "OCR value : Edited");
+//            intent.putExtra("rFlag", "EDITED");
+//
+//        } else {
+//            Log.d(TAG, "OCR value : Extracted");
+//
+//            intent.putExtra("rFlag", "EXTRACTED");
+//        }
 
 
         switch (valType) {
@@ -780,7 +829,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
                             if (category.categoryName().contentEquals("reading")) {
                                 String displayScore = "Offline OCR (" + category.score() + " %)";
-                                txtTitle.setText(displayScore);
+                                //txtTitle.setText(displayScore);
                             }
                         }
                     }
