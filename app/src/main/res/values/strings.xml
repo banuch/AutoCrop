@@ -14,4 +14,34 @@
     <string name="no_meter_detected_on_image">No Meter Detected On Image</string>
     <string name="enter_value">Enter Value</string>
     <string name="offline_ocr">Offline OCR</string>
+
+    <string name="toggle_off">meter detection off</string>
+    <string name="toggle_on">meter detection on</string>
+
+    <string name="adjust_value">Adjust value</string>
+    <string name="meter_detect">Meter Detect</string>
+    <string name="meter_detecrt_enabled">Meter Detect Enabled</string>
+    <string name="meter_detect_disbaled">Meter detect Disbaled</string>
+
+    <string name="captured_image">Captured Image</string>
+
+    <string name="kwh_value_not_found">kwh value not found</string>
+    <string name="energy_meter_found">Energy Meter Not Found</string>
+    <string name="click_on_camera_or_gallery_icon"> </string>
+    <string name="submit">Take</string>
+
+    <string name="flash_off">Flash Off</string>
+    <string name="flash_on">Flash On</string>
+    <string name="capture1">Capture</string>
+    <string name="value">Value:</string>
+    <string name="mechanical">Mechanical</string>
+    <string name="digital">Digital</string>
+
+    <string name="energy_meter_not_found">Energy Meter not Found</string>
+    <string name="unexptected_error">Unexptected error</string>
+    <string name="torch">Torch</string>
+
+    <string name="capture">Capture</string>
+
+
 </resources>

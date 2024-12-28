@@ -1,113 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-<!--    &lt;!&ndash; Toolbar &ndash;&gt;-->
-<!--    <androidx.appcompat.widget.Toolbar-->
-<!--        android:id="@+id/my_toolbar"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="45dp"-->
-<!--        android:background="?attr/colorPrimary"-->
-<!--        android:gravity="center|center_horizontal"-->
-<!--        android:title="@string/offline_ocr"-->
-<!--        android:titleTextColor="@android:color/white" />-->
-
-    <!-- ImageView for Image Capture -->
-
-    <!-- EditText for Text Result -->
-
-    <TextView
-        android:id="@+id/txtTitle"
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/purple_200"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="@string/offline_ocr"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:layout_height="match_parent" />
 
-    <ImageView
-        android:id="@+id/imgCapture"
-        android:layout_width="200dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="10dp"
-        android:contentDescription="@string/meter_image"
-        android:scaleType="fitCenter"
-
-        android:src="@drawable/meter"
-        tools:srcCompat="@drawable/meter" />
-
-    <EditText
-        android:id="@+id/textResult"
-        android:layout_width="394dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/edittext_boarder"
-        android:clickable="false"
-        android:cursorVisible="false"
-        android:focusable="false"
-        android:focusableInTouchMode="true"
-        android:hint="@string/kwh_value"
-        android:inputType="number"
-        android:textAlignment="center"
-        android:textColor="@color/purple_200"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <!-- TextView for Status -->
-    <TextView
-        android:id="@+id/txtStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text=""
-        android:textAlignment="center"
-        android:textColor="@color/teal_700"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <!-- SeekBar -->
-    <SeekBar
-        android:id="@+id/seekBar"
+    <com.app.autocrop.RectangleOverlay
+        android:id="@+id/rectangleOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:max="100"
-        android:progress="50"
-        android:visibility="visible" />
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/transparent" />
 
-    <!-- RelativeLayout for Buttons -->
+
     <LinearLayout
-        android:id="@+id/relativeLayout"
+        android:id="@+id/controlsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- OK Button -->
-        <Button
-            android:id="@+id/btn_ok"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/lblStatus"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="20dp"
-            android:text="@string/ok" />
+            android:layout_marginBottom="20dp"
+            android:text=""
+            android:textAlignment="center"
+            android:textColor="@color/teal_700"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+        <SeekBar
+            android:id="@+id/exposureSlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:max="100"
+            android:progress="50"
+            android:visibility="visible"
+            android:thumb="@drawable/custom_thumb_exposer" />
 
-        <!-- Camera Button -->
-        <Button
-            android:id="@+id/btn_camera"
-            android:layout_width="wrap_content"
+        <SeekBar
+            android:id="@+id/zoomSlider"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:visibility="visible"
+            android:thumb="@drawable/custom_thumb" />
+
+        <LinearLayout
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/camera" />
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/torchButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:onClick="flashButtonClick"
+                android:layout_marginEnd="20dp"
+                android:text="@string/torch" />
+
+            <Button
+                android:id="@+id/capture_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="captureButtonClick"
+                android:text="@string/capture" />
+
+
+        </LinearLayout>
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>

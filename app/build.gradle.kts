@@ -61,6 +61,8 @@ dependencies {
 
     implementation (libs.tasks.vision)
 
+    implementation (libs.barcode.scanning)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
