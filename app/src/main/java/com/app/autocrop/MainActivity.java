@@ -15,8 +15,11 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -39,6 +42,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.mediapipe.tasks.components.containers.Category;
 import com.google.mediapipe.tasks.components.containers.Detection;
 import com.google.mediapipe.tasks.vision.core.RunningMode;
@@ -64,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     private static final int RESULT_LOAD_IMAGE = 123;
     public static final int IMAGE_CAPTURE_CODE = 654;
     private static final int PERMISSION_CODE = 321;
+    String temp;
+    private StringBuilder inputNumber = new StringBuilder();
 
     TextView lblStatus;
     public boolean editFlag = false, eFlag = false, meter_detect = false, check_meter_detect = false;
@@ -172,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 float zoomRatio = progress / 8.0f; // Convert progress to zoom ratio
-                lblStatus.setText("Zoom:"+zoomRatio);
+                lblStatus.setText("Zoom:" + zoomRatio);
                 cameraControl.setZoomRatio(zoomRatio);
 
             }
@@ -198,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int exposureValue = progress + minExposure; // Map progress to actual exposure range
-                lblStatus.setText("Exposure:"+exposureValue);
+                lblStatus.setText("Exposure:" + exposureValue);
                 cameraControl.setExposureCompensationIndex(exposureValue);
             }
 
@@ -430,7 +436,6 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     }
 
 
-
     public Bitmap cropToAspectRatio(Bitmap originalBitmap, float aspectRatio) {
         int originalWidth = originalBitmap.getWidth();
         int originalHeight = originalBitmap.getHeight();
@@ -543,6 +548,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         });
     }
 
+
     public Bitmap takeScreenshot(View view) {
         // Create a bitmap object to store the screenshot
         Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
@@ -595,6 +601,25 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         String temp = doInference(imageBitmap);
 
         txtResult = dialogView.findViewById(R.id.textResult);
+
+        txtResult.setOnClickListener(v -> {
+//            if (image_count >= 3 && meter_detect) {
+//                //showNumericDialog();
+//                showNumericBottomDialog();
+//
+//            }
+            editFlag = true;
+            showNumericBottomDialog();
+        });
+
+        txtResult.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+                // Perform action when Enter key is pressed
+                hideKeyboard();
+                return true;
+            }
+            return false;
+        });
         txtResult.setText(temp);
 
         //createDirectoryAndSaveFile(imageBitmap, getImgFileName());
@@ -612,6 +637,11 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         // Set the captured image to the ImageView
         imageView.setImageBitmap(imageBitmap);
 
+        imageView.setOnClickListener(v -> {
+            imageView.setImageBitmap(RotateByAngle(imageBitmap));
+
+        });
+
         // Optionally, add "OK" button to dismiss the dialog
         builder.setPositiveButton("OK", (dialog, which) -> SendValues(imageBitmap));
         builder.setNegativeButton("Recapture", (dialog, which) -> dialog.dismiss());
@@ -621,13 +651,103 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         dialog.show();
     }
 
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(txtResult.getWindowToken(), 0);
+        }
+    }
+
+    void SaveAngle(int Angle) {
+        // Save value
+        SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("rotate", "true");
+        editor.putInt("angle", Angle);
+        editor.apply();
+
+    }
+
+    public Bitmap RotateByAngle(Bitmap bitmap) {
+
+
+        int Angle = GetAngle();
+
+        Log.d(TAG, "Saved Angle:" + Angle);
+
+
+        Angle = Angle + 90;
+
+        if (Angle > 360) {
+            Angle = 0;
+        } else {
+            bitmap = rotateBitmap(bitmap, 90);
+
+        }
+
+        SaveAngle(Angle);
+       temp = String.valueOf(Angle);
+//        txtStatus.setText(myString);
+        return bitmap;
+
+    }
+
+
+    private void showNumericBottomDialog() {
+        // Inflate the custom layout
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_numeric_keyboard, null);
+
+        // Initialize BottomSheetDialog with the custom view
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(dialogView);
+        bottomSheetDialog.show();
+
+        // Set up display TextView to show entered numbers
+        TextView displayText = dialogView.findViewById(R.id.txtTitle);
+
+        // Numeric buttons logic
+        View.OnClickListener numberButtonListener = view -> {
+            Button button = (Button) view;
+            inputNumber.append(button.getText().toString());
+            displayText.setText(inputNumber.toString());
+        };
+
+        // Assign listener to each number button
+        dialogView.findViewById(R.id.button_0).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_1).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_2).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_3).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_4).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_5).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_6).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_7).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_8).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_9).setOnClickListener(numberButtonListener);
+        dialogView.findViewById(R.id.button_decimal).setOnClickListener(numberButtonListener);
+
+        // Clear button logic
+        dialogView.findViewById(R.id.button_clear).setOnClickListener(v -> {
+            inputNumber.setLength(0);
+            displayText.setText("");
+        });
+
+        // Enter button logic
+        dialogView.findViewById(R.id.button_enter).setOnClickListener(v -> {
+            txtResult.setText(inputNumber.toString());
+            // Process the entered value
+            bottomSheetDialog.dismiss();
+        });
+
+    }
+
     // Handle permissions result
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-               // startCamera(zoomSlider, exposureSlider);
+                // startCamera(zoomSlider, exposureSlider);
             } else {
                 Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
             }
