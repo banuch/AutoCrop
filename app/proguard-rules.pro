@@ -1,3 +1,30 @@
+# Preserve critical components
+-keep class com.app.autocrop.** { *; }
+
+# Shrink, obfuscate, and optimize
+-dontnote
+-dontwarn
+-optimizations !code/simplification/arithmetic
+
+# Preserve Parcelable and Serializable
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object readResolve();
+}
+
+# Preserve logging
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.

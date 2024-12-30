@@ -1,10 +1,13 @@
 package com.app.autocrop;
-
+import static com.app.autocrop.MyUtl.createDirectoryAndSaveFile;
+import static com.app.autocrop.MyUtl.cropAndResizeImage;
+import static com.app.autocrop.MyUtl.getImgFileName;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,7 +16,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -25,7 +27,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -49,35 +50,30 @@ import com.google.mediapipe.tasks.vision.core.RunningMode;
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectionResult;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.text.DecimalFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+
 
 public class MainActivity extends AppCompatActivity implements ObjectDetectorHelper.DetectorListener {
     public static final int OCR_KWH_RESULT_CODE = 666;
     public static final int OCR_KVAH_RESULT_CODE = 667;
     public static final int OCR_RMD_RESULT_CODE = 668;
     public static final int OCR_LT_RESULT_CODE = 669;
-    //public static final int IMAGE_CAPTURE_CODE = 654;
-    private static final int RESULT_LOAD_IMAGE = 123;
-    public static final int IMAGE_CAPTURE_CODE = 654;
-    private static final int PERMISSION_CODE = 321;
     String temp;
     private StringBuilder inputNumber = new StringBuilder();
-
-    TextView lblStatus;
+    TextView lblStatus,lblTitile;
     public boolean editFlag = false, eFlag = false, meter_detect = false, check_meter_detect = false;
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 101;
     private ImageCapture imageCapture;
     private PreviewView previewView;
-    private ImageView imageView;
+
     EditText txtResult;
     private Camera camera;
     private static final String TEMP_DIR_NAME = "spdcl";
@@ -94,14 +90,33 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Set the allowed date range
+        String startDate = "2024-12-01"; // Format: yyyy-MM-dd
+        String endDate = "2025-01-31";
+
+        if (MyUtl.isWithinDateRange(startDate, endDate)) {
+            runStartCode();
+        } else {
+            lblTitile=findViewById(R.id.lblTitle);
+            lblTitile.setText(String.format("%s\n\n Activation expired", getVersionName()));
+        }
+
+
+
+    }
+    private void runStartCode(){
         lblStatus = findViewById(R.id.lblStatus);
+        lblTitile=findViewById(R.id.lblTitle);
         previewView = findViewById(R.id.previewView);
+
+        lblTitile.setText(getVersionName());
+
         SeekBar zoomSlider = findViewById(R.id.zoomSlider);
         SeekBar exposureSlider = findViewById(R.id.exposureSlider);
 
         serviceId = getIntent().getStringExtra("SERVICE_ID") != null ? getIntent().getStringExtra("SERVICE_ID") : "default";
         valType = getIntent().getStringExtra("TYPE") != null ? getIntent().getStringExtra("TYPE") : "kWh";
-        String temp = "Service:" + serviceId + "  Type: " + valType;
+        String temp = "Service No:" + serviceId + "  Type: " + valType;
         lblStatus.setText(temp);
 
         if (allPermissionsGranted()) {
@@ -129,8 +144,10 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
             Log.e("ObjectDetector", "Unexpected error: " + e.getMessage());
             lblStatus.setText(R.string.unexptected_error);
         }
-
     }
+
+
+
 
     private void startCamera(SeekBar zoomSlider, SeekBar exposureSlider) {
         // Bind the camera lifecycle
@@ -233,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
         textValue = txtResult.getText().toString();
 
-        String imagePath = createDirectoryAndSaveFile(bitmap, getImgFileName());
+        String imagePath = createDirectoryAndSaveFile(bitmap, getImgFileName(valType,serviceId));
 
         Intent intent = new Intent();
 
@@ -296,15 +313,6 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         }
 
 
-//        if (editFlag) {
-//            Log.d(TAG, "OCR value : Edited");
-//            intent.putExtra("rFlag", "EDITED");
-//
-//        } else {
-//            Log.d(TAG, "OCR value : Extracted");
-//
-//            intent.putExtra("rFlag", "EXTRACTED");
-//        }
 
 
         switch (valType) {
@@ -435,97 +443,6 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         return textValue;
     }
 
-
-    public Bitmap cropToAspectRatio(Bitmap originalBitmap, float aspectRatio) {
-        int originalWidth = originalBitmap.getWidth();
-        int originalHeight = originalBitmap.getHeight();
-
-        // Calculate the new dimensions
-        int cropWidth, cropHeight;
-        if (originalWidth / (float) originalHeight > aspectRatio) {
-            // Width is the limiting factor
-            cropHeight = originalHeight;
-            cropWidth = (int) (cropHeight * aspectRatio);
-        } else {
-            // Height is the limiting factor
-            cropWidth = originalWidth;
-            cropHeight = (int) (cropWidth / aspectRatio);
-        }
-
-        // Calculate the top-left coordinates to center the crop
-        int cropLeft = (originalWidth - cropWidth) / 2;
-        int cropTop = (originalHeight - cropHeight) / 2;
-
-        // Crop the bitmap
-        return Bitmap.createBitmap(originalBitmap, cropLeft, cropTop, cropWidth, cropHeight);
-    }
-
-    private void stopCamera() throws ExecutionException, InterruptedException {
-        ProcessCameraProvider cameraProvider = ProcessCameraProvider.getInstance(this).get();
-        if (cameraProvider != null) {
-            cameraProvider.unbindAll();  // Unbind all active camera use cases
-        }
-
-    }
-
-    public String getImgFileName() {
-
-        switch (valType) {
-            case "KWH":
-                return serviceId + "-kwh.jpg";
-            case "KVAH":
-                return serviceId + "-kvah.jpg";
-            case "RMD":
-                return serviceId + "-rmb.jpg";
-            default:
-                return "default.jpg";
-        }
-
-    }
-
-    private String createDirectoryAndSaveFile(Bitmap imageToSave, String fileName) {
-
-
-        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-
-        File tempDir = new File(root, TEMP_DIR_NAME);
-        if (!tempDir.exists()) {
-            if (!tempDir.mkdirs()) {
-                Log.e(TAG, "Failed to create temp directory: " + tempDir.getAbsolutePath());
-                return null;
-            }
-        }
-
-
-        File file = new File(tempDir, fileName);
-
-
-        if (file.exists()) {
-            file.delete();
-        }
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            imageToSave.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return file.toString();
-    }
-
-    private Bitmap cropAndResizeImage(Bitmap originalBitmap) {
-        // Define the rectangle area (left, top, right, bottom) you want to crop
-        int left = 50;   // example x coordinate of the top-left corner
-        int top = 50;    // example y coordinate of the top-left corner
-        int right = originalBitmap.getWidth() - 50;  // example x coordinate of the bottom-right corner
-        int bottom = originalBitmap.getHeight() / 2; // example y coordinate of the bottom-right corner
-
-        return Bitmap.createScaledBitmap(Bitmap.createBitmap(originalBitmap, left, top, right - left, bottom - top), 640, 640, true);
-
-
-    }
-
     private void takePicture() {
         // Create a file to save the image
         File photoFile = new File(getExternalFilesDir(null), new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".jpg");
@@ -549,18 +466,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     }
 
 
-    public Bitmap takeScreenshot(View view) {
-        // Create a bitmap object to store the screenshot
-        Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
 
-        // Create a canvas with the bitmap
-        Canvas canvas = new Canvas(bitmap);
-
-        // Draw the view's content onto the canvas
-        view.draw(canvas);
-
-        return bitmap;
-    }
 
 
     private Bitmap rotateBitmap(Bitmap originalBitmap, float angle) {
@@ -580,11 +486,6 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", Context.MODE_PRIVATE);
 
         return (sharedPreferences.getInt("angle", 90));
-    }
-
-    // Java
-    int dpToPx(int dp, Context context) {
-        return Math.round(dp * context.getResources().getDisplayMetrics().density);
     }
 
     private void showCapturedImageInDialog(Bitmap imageBitmap) {
@@ -622,18 +523,6 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         });
         txtResult.setText(temp);
 
-        //createDirectoryAndSaveFile(imageBitmap, getImgFileName());
-
-        // Java
-//        int dynamicWidth = dpToPx(300, this); // 100dp
-//        int dynamicHeight = dpToPx(100, this); // 150dp
-//
-//
-//        ViewGroup.LayoutParams params = imageView.getLayoutParams();
-//        params.width = dynamicWidth;
-//        params.height = dynamicHeight;
-//        imageView.setLayoutParams(params);
-
         // Set the captured image to the ImageView
         imageView.setImageBitmap(imageBitmap);
 
@@ -655,6 +544,16 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.hideSoftInputFromWindow(txtResult.getWindowToken(), 0);
+        }
+    }
+    private String getVersionName() {
+        try {
+            PackageManager packageManager = getPackageManager();
+            PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+            return "Ebilly OCR ( Ver: " + packageInfo.versionName + " )";
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return "Version not found";
         }
     }
 
@@ -763,12 +662,10 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         toggleTorch();
     }
 
-
     @Override
     public void onError(String var1, int var2) {
 
     }
-
     @Override
     public void onResults(ObjectDetectorHelper.ResultBundle var1) {
 
