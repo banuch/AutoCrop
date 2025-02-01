@@ -22,7 +22,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -37,6 +37,7 @@ android {
     aaptOptions{
         noCompress ("tflite")
     }
+
 
 }
 
@@ -61,7 +62,13 @@ dependencies {
 
     implementation (libs.tasks.vision)
 
+
+        implementation (libs.okhttp)
+
+
+
     implementation (libs.barcode.scanning)
+
 
 
     testImplementation(libs.junit)

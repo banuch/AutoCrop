@@ -42,6 +42,9 @@
     <string name="torch">Torch</string>
 
     <string name="capture">Capture</string>
+    <string name="please_wait">Please wait.....</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
 
 
 </resources>

@@ -78,6 +78,17 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:orientation="horizontal">
+
+
+<!--            <ToggleButton-->
+<!--                android:id="@+id/toggleButton"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:shadowColor="@color/colorAccent"-->
+<!--                android:textColor="@color/colorAccent"-->
+<!--                android:textOff="@string/online"-->
+<!--                android:textOn="@string/offline"/>-->
+
             <Button
                 android:id="@+id/torchButton"
                 android:layout_width="wrap_content"
