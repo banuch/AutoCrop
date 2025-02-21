@@ -63,7 +63,7 @@ dependencies {
     implementation (libs.tasks.vision)
 
 
-        implementation (libs.okhttp)
+    implementation (libs.okhttp)
 
 
 

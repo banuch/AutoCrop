@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ebilly OCR</string>
+    <string name="app_name">AutoCrop</string>
     <string name="camera">camera</string>
     <string name="kwh_value">Extracted Value</string>
     <string name="extract_value">Extract</string>
