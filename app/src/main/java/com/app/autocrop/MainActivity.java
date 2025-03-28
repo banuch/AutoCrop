@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
 
     private RectangleOverlay rectangleOverlay;
     String temp;
+    boolean isMeter_detect=false;
     private StringBuilder inputNumber = new StringBuilder();
     TextView lblStatus, lblTitile;
     public boolean editFlag = false, eFlag = false, meter_detect = false, check_meter_detect = false;
@@ -125,23 +126,9 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-//        toggleButton = findViewById(R.id.toggleButton);
-//
-//        toggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            if (isChecked) {
-//                // Toast.makeText(this, "Toggle is ON", Toast.LENGTH_SHORT).show();
-//                isOnline = true;
-//            } else {
-//                //Toast.makeText(this, "Toggle is OFF", Toast.LENGTH_SHORT).show();
-//                isOnline = false;
-//            }
-//        });
-
-
         // Set the allowed date range
         String startDate = "2025-02-01"; // Format: yyyy-MM-dd
-        String endDate = "2025-02-28";
+        String endDate = "2025-04-30";
 
         if (MyUtl.isWithinDateRange(startDate, endDate)) {
             runStartCode();
@@ -520,8 +507,8 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
                             objectName = category.categoryName();
 
                             if (category.categoryName().contentEquals("reading")) {
-                                String displayScore = "Offline OCR (" + category.score() + " %)";
                                 //txtTitle.setText(displayScore);
+                                isMeter_detect=true;
                             }
                         }
                     }
@@ -551,6 +538,7 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
             Log.d(TAG, "Sorted Values are:......");
             // Assuming detectionDataList is already sorted
             for (DetectionData data : detectionDataList) {
+
                 Log.d(TAG, "ObjectName: " + data.getObjectName() + ", Left: " + data.getLeft());
 
 
@@ -579,6 +567,39 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     }
 
     private void takePicture() {
+        // Create a file to save the image
+        File photoFile = new File(getExternalFilesDir(null), new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".jpg");
+
+        OutputFileOptions options = new OutputFileOptions.Builder(photoFile).build();
+
+        imageCapture.takePicture(options, ContextCompat.getMainExecutor(this), new ImageCapture.OnImageSavedCallback() {
+
+            @Override
+            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+
+                Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+
+                String imagePath = photoFile.getAbsolutePath();
+                int rotation = getImageRotation(imagePath);
+                System.out.println("Image rotation: " + rotation + " degrees");
+
+                Bitmap rotateBitmap = rotateBitmap(bitmap, rotation);
+
+                Bitmap cropAndResizeImage = cropAndResizeImage(rotateBitmap, isOnline);
+
+                showCapturedImageInDialog(cropAndResizeImage);
+
+            }
+
+            @Override
+            public void onError(@NonNull ImageCaptureException exception) {
+                Toast.makeText(MainActivity.this, "Error capturing image: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void takePicture2() {
         // Create a file to save the image
         File photoFile = new File(getExternalFilesDir(null), new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".jpg");
 
@@ -911,6 +932,15 @@ public class MainActivity extends AppCompatActivity implements ObjectDetectorHel
     // Capture image on button click
     public void captureButtonClick(View view) {
         takePicture();
+//        if(!isOnline){
+//            takePicture();
+//        }
+//        else
+//        {
+//            takePicture2();
+//            //Toast.makeText(this, "Online OCR Selected", Toast.LENGTH_SHORT).show();
+//        }
+
         //takeScreenshot();
     }
 

@@ -39,6 +39,17 @@
             android:paddingBottom="50dp"
             android:textStyle="bold" />
 
+<!--        <ToggleButton-->
+<!--            android:id="@+id/toggleButton"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center_horizontal"-->
+<!--            android:shadowColor="@color/colorAccent"-->
+<!--            android:textColor="@color/colorAccent"-->
+<!--            android:textOff="@string/online"-->
+<!--            android:textOn="@string/offline"/>-->
+
+
         <TextView
             android:id="@+id/lblStatus"
             android:layout_width="match_parent"
@@ -80,14 +91,6 @@
             android:orientation="horizontal">
 
 
-<!--            <ToggleButton-->
-<!--                android:id="@+id/toggleButton"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:shadowColor="@color/colorAccent"-->
-<!--                android:textColor="@color/colorAccent"-->
-<!--                android:textOff="@string/online"-->
-<!--                android:textOn="@string/offline"/>-->
 
             <Button
                 android:id="@+id/torchButton"
